@@ -35,7 +35,7 @@
 %right NOT
 
 %type <Node*> Goal MainClass ClassDeclList ClassDeclaration VarDeclList VarDeclaration MethodDeclList MethodDeclaration StatementList Statement VarStmtList ParamListOpt ParamList ParamRest Type Expression
-
+%type <Node*> ArgListOpt ArgList ArgListRest
 %start Goal
 
 %%
@@ -245,6 +245,15 @@ Statement
       n->children.insert(n->children.end(),$2->children.begin(),$2->children.end());
       $$ = n;
     }
+  | IF LPAREN Expression RPAREN Statement
+    {
+      Node* n = new Node("IfStatement","",yylineno);
+      n->children.push_back($3);
+      n->children.push_back($5);
+      Node* emptyElse = new Node("EmptyElse","",yylineno);
+      n->children.push_back(emptyElse);
+      $$ = n;
+    }
   | IF LPAREN Expression RPAREN Statement ELSE Statement
     {
       Node* n = new Node("IfStatement","",yylineno);
@@ -261,11 +270,11 @@ Statement
       $$ = n;
     }
   | SYSTEM DOT OUT DOT PRINTLN LPAREN Expression RPAREN SEMICOLON
-  {
-    Node* n = new Node("PrintStatement","",yylineno);
-    n->children.push_back($7);
-    $$ = n;
-  }
+    {
+      Node* n = new Node("PrintStatement","",yylineno);
+      n->children.push_back($7);
+      $$ = n;
+    }
   | IDENTIFIER ASSIGN Expression SEMICOLON
     {
       Node* n = new Node("Assignment",$1,yylineno);
@@ -278,6 +287,50 @@ Statement
       n->children.push_back($3);
       n->children.push_back($6);
       $$ = n;
+    }
+  ;
+
+
+ArgListOpt
+  :
+    {
+      $$ = NULL;
+    }
+  | ArgList
+    {
+      $$ = $1;
+    }
+  ;
+
+ArgList
+  : Expression ArgListRest
+    {
+      Node* n = new Node("ArgList","",yylineno);
+      n->children.push_back($1);
+      if($2) {
+        for(auto& x : $2->children) {
+          n->children.push_back(x);
+        }
+      }
+      $$ = n;
+    }
+  ;
+
+ArgListRest
+  :
+    {
+      $$ = NULL;
+    }
+  | COMMA Expression ArgListRest
+    {
+      if(!$3) {
+        Node* n = new Node("ArgListRest","",yylineno);
+        n->children.push_back($2);
+        $$ = n;
+      } else {
+        $3->children.insert($3->children.begin(),$2);
+        $$ = $3;
+      }
     }
   ;
 
@@ -384,6 +437,18 @@ Expression
     {
       $$ = $2;
     }
+  | Expression DOT IDENTIFIER LPAREN ArgListOpt RPAREN
+    {
+      Node* n = new Node("MethodCall",$3,yylineno);
+      n->children.push_back($1);
+      if($5) {
+        for(auto& x : $5->children) {
+          n->children.push_back(x);
+        }
+      }
+      $$ = n;
+    }
   ;
+
 
 %%
