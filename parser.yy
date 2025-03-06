@@ -42,7 +42,7 @@
 %%
 
 Goal
-  : MainClass ClassDeclList END
+  : MainClass ClassDeclList
     {
       Node* n = new Node("Goal","",yylineno);
       n->children.push_back($1);

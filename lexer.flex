@@ -65,4 +65,4 @@
     fprintf(stderr, "\t@error at line %d. Character '%s' not recognized\n", yylineno, yytext);
 }
 
-<<EOF>> { return yy::parser::make_END("EOF"); }
+<<EOF>> { return 0; }
