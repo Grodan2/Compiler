@@ -36,6 +36,7 @@
 
 %type <Node*> Goal MainClass ClassDeclList ClassDeclaration VarDeclList VarDeclaration MethodDeclList MethodDeclaration StatementList Statement VarStmtList ParamListOpt ParamList ParamRest Type Expression
 %type <Node*> ArgListOpt ArgList ArgListRest
+%type <Node*> NonEmptyStatementList
 %start Goal
 
 %%
@@ -51,14 +52,29 @@ Goal
     }
   ;
 
+NonEmptyStatementList
+  : Statement
+    {
+      Node* n = new Node("StatementList","",yylineno);
+      n->children.push_back($1);
+      $$ = n;
+    }
+  | NonEmptyStatementList Statement
+    {
+      $$ = $1;
+      $$->children.push_back($2);
+    }
+  ;
+
 MainClass
-  : PUBLIC CLASS IDENTIFIER LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET IDENTIFIER RPAREN LBRACE StatementList RBRACE RBRACE
+  : PUBLIC CLASS IDENTIFIER LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING LBRACKET RBRACKET IDENTIFIER RPAREN LBRACE NonEmptyStatementList RBRACE RBRACE
     {
       Node* n = new Node("MainClass",$3,yylineno);
       n->children.push_back($16);
       $$ = n;
     }
   ;
+
 
 ClassDeclList
   : 
@@ -288,6 +304,7 @@ Statement
       n->children.push_back($6);
       $$ = n;
     }
+  
   ;
 
 
@@ -384,6 +401,13 @@ Expression
       n->children.push_back($3);
       $$ = n;
     }
+  | Expression LBRACKET Expression RBRACKET
+  {
+    Node* n = new Node("ArrayAccess","",yylineno);
+    n->children.push_back($1);
+    n->children.push_back($3);
+    $$ = n;
+  }  
   | Expression MULT Expression
     {
       Node* n = new Node("MulExpr","",yylineno);
