@@ -25,6 +25,7 @@
 %token <std::string> LBRACE RBRACE LPAREN RPAREN LBRACKET RBRACKET SEMICOLON DOT COMMA
 %token <std::string> IDENTIFIER INTEGER
 %token <std::string> END
+%token <std::string> LENGTH
 
 %left OR
 %left AND
@@ -366,6 +367,12 @@ Expression
       n->children.push_back($3);
       $$ = n;
     }
+  | Expression DOT LENGTH
+  {
+    Node* n = new Node("ArrayLength","",yylineno);
+    n->children.push_back($1);
+    $$ = n;
+  }
   | Expression LT Expression
     {
       Node* n = new Node("LessThanExpr","",yylineno);

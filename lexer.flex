@@ -29,6 +29,7 @@
 "System"        { return yy::parser::make_SYSTEM(yytext); }
 "out"           { return yy::parser::make_OUT(yytext); }
 "println"       { return yy::parser::make_PRINTLN(yytext); }
+"length"        { return yy::parser::make_LENGTH(yytext); }
 
 "&&"            { return yy::parser::make_AND(yytext); }
 "||"            { return yy::parser::make_OR(yytext); }
